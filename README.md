@@ -2,6 +2,51 @@ Golint is a linter for Go source code.
 
 [![Build Status](https://travis-ci.org/golang/lint.svg?branch=master)](https://travis-ci.org/golang/lint)
 
+## Fork Notes
+
+This is a temporary fork which incorporates a hack to allow disabling of golint
+checks. The change is a hack to minimize the change to the upstream golint code,
+so that it can be merged easily on golint updates. If the idea of disabling
+checks is accepted, the code can be made nicer.
+
+First time install:
+```bash
+$ cd go/src/github.com/golang/lint/golint
+$ git remote add mikijov git@github.com:mikijov/lint.git
+$ git fetch mikijov
+$ git checkout mikijov/master
+$ go build
+$ go install
+```
+
+Subsequent updates:
+```bash
+$ cd go/src/github.com/golang/lint/golang
+$ git pull
+$ go build
+$ go install
+```
+
+The fork adds two new command line flags:
+```
+-disable_category value
+    disable whole category of checks (naming, unary-op, arg-order, unexported-type-in-api, time, context, comments, imports, zero-value, type-inference, indent, range-loop, errors)
+-disable_check value
+    disable individual checks; specify beginning of the message; e.g. 'receiver name should'
+```
+They can be repeated multiple times to disable multiple checks or categories.
+
+If using `gometalinter` you can use `.gometalinter.json` file:
+```json
+{
+  "Linters": {
+      "golint": {
+        "Command": "golint -disable_category naming"
+      }
+  }
+}
+```
+
 ## Installation
 
 Golint requires a

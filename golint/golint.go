@@ -35,7 +35,31 @@ func usage() {
 	flag.PrintDefaults()
 }
 
+type stringList []string
+
+var disabledCategories stringList = make([]string, 0, 8)
+var disabledChecks stringList = make([]string, 0, 8)
+
+func (this *stringList) String() string {
+	if len(*this) > 0 {
+		return "[" + strings.Join(*this, "\",\"") + "\"]"
+	}
+	return "[]"
+}
+
+func (this *stringList) Set(value string) error {
+	if len(*this) == cap(*this) {
+		temp := make([]string, 0, len(*this)*2)
+		copy(temp, *this)
+		*this = stringList(temp)
+	}
+	*this = append(*this, value)
+	return nil
+}
+
 func main() {
+	flag.Var(&disabledCategories, "disable_category", "disable whole category of checks (naming, unary-op, arg-order, unexported-type-in-api, time, context, comments, imports, zero-value, type-inference, indent, range-loop, errors)")
+	flag.Var(&disabledChecks, "disable_check", "disable individual checks; specify beginning of the message; e.g. 'receiver name should'")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -116,7 +140,18 @@ func lintFiles(filenames ...string) {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
 	}
+CHECKS:
 	for _, p := range ps {
+		for _, category := range disabledCategories {
+			if p.Category == category {
+				continue CHECKS
+			}
+		}
+		for _, check := range disabledChecks {
+			if strings.HasPrefix(p.Text, check) {
+				continue CHECKS
+			}
+		}
 		if p.Confidence >= *minConfidence {
 			fmt.Printf("%v: %s\n", p.Position, p.Text)
 			suggestions++
