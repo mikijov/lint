@@ -1,0 +1,7 @@
+{
+  "Linters": {
+      "golint": {
+        "Command": "golint -disable_category naming"
+      }
+  }
+}
